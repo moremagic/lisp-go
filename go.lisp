@@ -1,8 +1,3 @@
-
-(define zero?
-  (lambda (n)
-    (= n 0)))
-
 (define sub
   (lambda (n)
     (- n 1)))
@@ -77,14 +72,6 @@
       (else
         (add (lat-size (cdr lat)))))))
 
-;;; ボードの一行分を表現した文字列を返却する
-(define draw-line-string
-  (lambda (lat)
-    (cond
-      ((null? lat) "\n")
-      (else
-        (string-append (player-letter (car lat)) " " (draw-line-string (cdr lat)))))))
-
 ;;; プレイヤー情報を文字表現にする
 (define player-letter
   (lambda (n)
@@ -106,15 +93,40 @@
         (print (draw-line-string (car board)))
         (print-board (cdr board))))))
 
+;;; ボードの一行分を表現した文字列を返却する
+(define draw-line-string
+  (lambda (lat)
+    (cond
+      ((null? lat) "\n")
+      (else
+        (string-append (player-letter (car lat)) " " (draw-line-string (cdr lat)))))))
+
+;;; 手番を管理する
+(define player-turn
+  (lambda (p)
+    (cond
+      ((= p 0) 1)
+      (else 0))))
+
+
+;;; 石を置く***
+(define stone-put
+  (lambda (p input)
+    (update-board *board* (car input) (cadr input) p)))
+
+
+
 ;;; *********************************************************
+(define *player* 0)
 (define *board-size* 9)
 (define *board* (mk-board *board-size* *board-size*))
 
-(print-board *board*)
-(define *board* (update-board *board* 3 3 1))
-(define *board* (update-board *board* 4 3 0))
-(define *board* (update-board *board* 5 3 1))
-(define *board* (update-board *board* 6 3 0))
-(print-board *board*)
+    (print-board *board*)
+
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
+
 
 
