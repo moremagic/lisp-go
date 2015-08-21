@@ -6,21 +6,6 @@
   (lambda (n)
     (+ n 1)))
 
-(define number-list?
-  (lambda (lat)
-    (cond
-      ((null? lat) #t)
-      (else
-        (and (number? (car lat)) (number-list? (cdr lat)))))))
-
-;;; 座標情報であるかどうか
-(define board-point?
-  (lambda (pos)
-    (cond
-      ((null? pos) #f)
-      (else
-        (and (= 1 (lat-size pos)) (number-list? pos))))))
-
 ;;;要求されたサイズでボード表現列を初期化する
 (define mk-line
   (lambda (n)
@@ -131,16 +116,6 @@
 
 
 
-
-;;; 囲まれているか。囲まれてる場合 #t
-;;; (define aaaa?
-;;;   (lambda (pos player)
-;;;     (cond 
-;;;       ((not (board-point? pos)) #f)
-;;;       (else
-;;;         (and (= player (pick-bord (car pos) (cadr pos) *board*) ))))))
-   
-
 ;;; *********************************************************
 (define *player* 0)
 (define *board-size* 9)
@@ -153,5 +128,34 @@
     (set! *player* (player-turn *player*))
     (print-board *board*)
 
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
+
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
+
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
+
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
+
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
+
+    (print "please input.")
+    (set! *board* (stone-put *player* (read)))
+    (set! *player* (player-turn *player*))
+    (print-board *board*)
 
 
