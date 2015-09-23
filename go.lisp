@@ -19,7 +19,11 @@
     (cond
       ((null? pos) #f)
       (else
-        (and (= 1 (lat-size pos)) (number-list? pos))))))
+        (and
+          (= 1 (lat-size pos))
+          (number-list? pos)
+          (not (negative? (car pos)))
+          (not (negative? (cadr pos))))))))
 
 ;;;要求されたサイズでボード表現列を初期化する
 (define mk-line
@@ -52,11 +56,11 @@
 
 ;;; 指定した座標の情報を取得する
 (define pick-board
-  (lambda (col row board)
+  (lambda (pos board)
     (cond
       ((null? board) '())
       (else
-        (pick (pick board row) col)))))
+        (pick (pick board (car pos)) (cadr pos))))))
 
 ;;; 指定した座標にデータを挿入する
 (define update-board
@@ -78,7 +82,6 @@
         (cons (car lat)
           (update-list (cdr lat) (sub col) n))))))
 
-
 ;;; リストのサイズを取得する
 (define lat-size
   (lambda (lat)
@@ -98,6 +101,23 @@
           ((= 0 n) "O")
           ((= 1 n) "@")
           (else "?"))))))
+
+;;; 座標のshift
+(define shift-point-down
+  (lambda (pos)
+    (cons (car pos) (add (cadr pos)))))
+
+(define shift-point-up
+  (lambda (pos)
+    (cons (car pos) (sub (cadr pos)))))
+
+(define shift-point-right
+  (lambda (pos)
+    (cons (add (car pos)) (cadr pos))))
+
+(define shift-point-left
+  (lambda (pos)
+    (cons (sub (car pos)) (cadr pos))))
 
 ;;; ボードを標準出力に出力する
 (define print-board
@@ -133,25 +153,43 @@
 
 
 ;;; 囲まれているか。囲まれてる場合 #t
-;;; (define aaaa?
-;;;   (lambda (pos player)
-;;;     (cond 
-;;;       ((not (board-point? pos)) #f)
-;;;       (else
-;;;         (and (= player (pick-bord (car pos) (cadr pos) *board*) ))))))
-   
+
+;;; 呼吸点かどうか。呼吸できる場合ｔ
+(define kokyuu?
+  (lambda (pos)
+    (cond
+      ((not (board-point? pos)) #f)
+      ((= -1 (pick-board 'pos *board*)) #t)
+      (else #f))))
+
+(define aaaa?
+  (lambda (pos player)
+     (cond
+        ((or
+          (kokyuu? #?=(shift-point-up pos))
+          (kokyuu? (shift-point-down pos))
+          (kokyuu? (shift-point-right pos))
+          (kokyuu? (shift-point-left pos))) #t)
+        (else #f))))
 
 ;;; *********************************************************
 (define *player* 0)
 (define *board-size* 9)
 (define *board* (mk-board *board-size* *board-size*))
 
-    (print-board *board*)
+;; test
+(set! *board* (stone-put 1 '(0 0)))
+(print-board *board*)
 
-    (print "please input.")
-    (set! *board* (stone-put *player* (read)))
-    (set! *player* (player-turn *player*))
-    (print-board *board*)
+#?=(aaaa? '(0 1) *player*)
+
+
+;;    (print-board *board*)
+;;
+;;    (print "please input.")
+;;    (set! *board* (stone-put *player* (read)))
+;;    (set! *player* (player-turn *player*))
+;;    (print-board *board*)
 
 
 
