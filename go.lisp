@@ -10,6 +10,7 @@
   (lambda (lat)
     (cond
       ((null? lat) #t)
+      ((not (pair? lat)) #t)
       (else
         (and (number? (car lat)) (number-list? (cdr lat)))))))
 
@@ -60,7 +61,7 @@
     (cond
       ((null? board) '())
       (else
-        (pick (pick board (car pos)) (cadr pos))))))
+        (pick (pick-board (car pos)) (cadr pos))))))
 
 ;;; 指定した座標にデータを挿入する
 (define update-board
@@ -86,6 +87,7 @@
 (define lat-size
   (lambda (lat)
     (cond
+      ((not (pair? lat)) 0)
       ((null? (cdr lat)) 0)
       (else
         (add (lat-size (cdr lat)))))))
@@ -105,19 +107,19 @@
 ;;; 座標のshift
 (define shift-point-down
   (lambda (pos)
-    (cons (car pos) (add (cadr pos)))))
+    (cons (car pos) (cons (add (cadr pos)) ()))))
 
 (define shift-point-up
   (lambda (pos)
-    (cons (car pos) (sub (cadr pos)))))
+    (cons (car pos) (cons (sub (cadr pos)) ()))))
 
 (define shift-point-right
   (lambda (pos)
-    (cons (add (car pos)) (cadr pos))))
+    (cons (add (car pos)) (cons (cadr pos) ()))))
 
 (define shift-point-left
   (lambda (pos)
-    (cons (sub (car pos)) (cadr pos))))
+    (cons (sub (car pos)) (cons (cadr pos) ()))))
 
 ;;; ボードを標準出力に出力する
 (define print-board
@@ -157,6 +159,7 @@
 ;;; 呼吸点かどうか。呼吸できる場合ｔ
 (define kokyuu?
   (lambda (pos)
+    (print pos)
     (cond
       ((not (board-point? pos)) #f)
       ((= -1 (pick-board 'pos *board*)) #t)
@@ -167,9 +170,9 @@
      (cond
         ((or
           (kokyuu? #?=(shift-point-up pos))
-          (kokyuu? (shift-point-down pos))
-          (kokyuu? (shift-point-right pos))
-          (kokyuu? (shift-point-left pos))) #t)
+          (kokyuu? #?=(shift-point-down pos))
+          (kokyuu? #?=(shift-point-right pos))
+          (kokyuu? #?=(shift-point-left pos))) #t)
         (else #f))))
 
 ;;; *********************************************************
@@ -179,7 +182,7 @@
 
 ;; test
 (set! *board* (stone-put 1 '(0 0)))
-(print-board *board*)
+;;(print-board *board*)
 
 #?=(aaaa? '(0 1) *player*)
 
