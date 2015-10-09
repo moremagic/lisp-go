@@ -61,7 +61,7 @@
     (cond
       ((null? board) '())
       (else
-        (pick (pick-board (car pos)) (cadr pos))))))
+        (pick (pick board (cadr pos)) (car pos))))))
 
 ;;; 指定した座標にデータを挿入する
 (define update-board
@@ -145,46 +145,67 @@
       ((= p 0) 1)
       (else 0))))
 
-
 ;;; 石を置く***
 (define stone-put
   (lambda (p input)
     (update-board *board* (car input) (cadr input) p)))
-
-
-
 
 ;;; 囲まれているか。囲まれてる場合 #t
 
 ;;; 呼吸点かどうか。呼吸できる場合ｔ
 (define kokyuu?
   (lambda (pos)
-    (print pos)
     (cond
       ((not (board-point? pos)) #f)
-      ((= -1 (pick-board 'pos *board*)) #t)
+      ((= -1 (pick-board pos *board*)) #t)
       (else #f))))
 
 (define aaaa?
   (lambda (pos player)
      (cond
         ((or
-          (kokyuu? #?=(shift-point-up pos))
-          (kokyuu? #?=(shift-point-down pos))
-          (kokyuu? #?=(shift-point-right pos))
-          (kokyuu? #?=(shift-point-left pos))) #t)
-        (else #f))))
+          #?=(kokyuu? (shift-point-up pos))
+          #?=(kokyuu? (shift-point-down pos))
+          #?=(kokyuu? (shift-point-right pos))
+          #?=(kokyuu? (shift-point-left pos))) #f)
+        (else #t))))
 
 ;;; *********************************************************
 (define *player* 0)
 (define *board-size* 9)
 (define *board* (mk-board *board-size* *board-size*))
 
-;; test
-(set! *board* (stone-put 1 '(0 0)))
+;; debug
+;;#?=(pick '(1 2 3) 2)
+;;#?=(pick-board '(0 0) *board*)
+;;#?=(pick-board '(1 0) *board*)
 ;;(print-board *board*)
+;;#?=(aaaa? '(0 1) *player*)
 
-#?=(aaaa? '(0 1) *player*)
+;; test1
+(set! *board* (stone-put 1 '(1 0)))
+(set! *board* (stone-put 1 '(2 1)))
+(set! *board* (stone-put 1 '(0 1)))
+(set! *board* (stone-put 1 '(1 2)))
+
+;; test2
+(set! *board* (stone-put 1 '(0 4)))
+(set! *board* (stone-put 0 '(1 5)))
+(set! *board* (stone-put 1 '(0 6)))
+
+
+(print-board *board*)
+;;#?=(pick-board '(0 0) *board*)
+;;#?=(pick-board '(0 1) *board*)
+;;#?=(pick-board '(0 2) *board*)
+;;#?=(pick-board '(0 3) *board*)
+;;#?=(pick-board '(0 4) *board*)
+;;#?=(pick-board '(0 5) *board*)
+;;#?=(pick-board '(0 6) *board*)
+;;#?=(pick-board '(0 7) *board*)
+;;#?=(pick-board '(0 8) *board*)
+#?=(aaaa? '(1 1) *player*)
+#?=(aaaa? '(0 5) *player*)
 
 
 ;;    (print-board *board*)
