@@ -14,6 +14,29 @@
       (else
         (and (number? (car lat)) (number-list? (cdr lat)))))))
 
+
+;; Key-value 形式リストからデータを取得する
+;; #?=(memo-pick-value '(0 1) '(((0 1) #t) ((0 2) #f)))
+;;     >>  #t
+(define memo-pick-value
+  (lambda (key lat)
+    (cond
+      ((null? lat) '())
+      ((equal? key (caar lat)) (cadar lat))
+      (else
+        (memo-pick-value key (cdr lat))))))
+
+;; Key-value 形式リストにデータを追加する
+;; #?=(memo-push-value '(((0 1) #t) ((0 2) #f)) '((0 3) #f))
+;;     >>  (((0 1) #t) ((0 2) #f) ((0 3) #f))
+(define memo-push-value
+  (lambda (lat value)
+    (cond
+      ((null? lat) (cons value '()))
+      (else
+        (cons (car lat) (memo-push-value (cdr lat) value))))))
+
+
 ;;; 座標情報であるかどうか
 (define board-point?
   (lambda (pos)
@@ -150,51 +173,65 @@
   (lambda (p input)
     (update-board *board* (car input) (cadr input) p)))
 
-;;; 囲まれているか。囲まれてる場合 #t
 
-;;; 呼吸点かどうか。呼吸できる場合ｔ
+;;; 自身の周りに呼吸点が存在するか。存在すれば #t
+;;; 一度調査した場所を二度と調査しないための変数*memo*クリアをここで行う
+;;; この辺は多分メモ化できそう
+(define *memo* '())
 (define kokyuu?
-  (lambda (pos)
-    (cond
-      ((not (board-point? pos)) #f)
-      ((= -1 (pick-board pos *board*)) #t)
-      (else #f))))
+  (lambda (pos player)
+    (set! *memo* (memo-push-value '() (cons pos (cons #t '()))))
+    (kokyuu-memo? pos player)))
 
-(define aaaa?
+;;; 自身の周りに呼吸点が存在するか。存在すれば #t
+(define kokyuu-memo?
   (lambda (pos player)
      (cond
         ((or
-          #?=(kokyuu? (shift-point-up pos))
-          #?=(kokyuu? (shift-point-down pos))
-          #?=(kokyuu? (shift-point-right pos))
-          #?=(kokyuu? (shift-point-left pos))) #f)
-        (else #t))))
+          (kokyuu-cell? player (shift-point-up pos))
+          (kokyuu-cell? player (shift-point-right pos))
+          (kokyuu-cell? player (shift-point-down pos))
+          (kokyuu-cell? player (shift-point-left pos))) #t)
+        (else #f))))
+
+;;; 呼吸点（空白）かどうか。空白の場合 #t。
+;;; 自石のばあい再帰的に呼吸点を探す。
+(define kokyuu-cell?
+  (lambda (player pos)
+    (cond
+      ((eq? (memo-pick-value pos *memo*) #t) #f)
+      (else
+        (set! *memo* (memo-push-value *memo* (cons pos (cons #t '()))))
+        (cond
+          ((not (board-point? pos)) #f) ;; 位置が盤面を超えている場合
+          ((= -1 (pick-board pos *board*)) #t)
+          ((= player (pick-board pos *board*)) (kokyuu-memo? pos player) )
+          (else #f))))))
 
 ;;; *********************************************************
 (define *player* 0)
 (define *board-size* 9)
 (define *board* (mk-board *board-size* *board-size*))
 
-;; debug
-;;#?=(pick '(1 2 3) 2)
-;;#?=(pick-board '(0 0) *board*)
-;;#?=(pick-board '(1 0) *board*)
-;;(print-board *board*)
-;;#?=(aaaa? '(0 1) *player*)
-
-;; test1
+;; test1コマ配置
 (set! *board* (stone-put 1 '(1 0)))
 (set! *board* (stone-put 1 '(2 1)))
 (set! *board* (stone-put 1 '(0 1)))
 (set! *board* (stone-put 1 '(1 2)))
 
-;; test2
+;; test2コマ配置
 (set! *board* (stone-put 1 '(0 4)))
 (set! *board* (stone-put 0 '(1 5)))
-(set! *board* (stone-put 1 '(0 6)))
+(set! *board* (stone-put 1 '(2 5)))
+(set! *board* (stone-put 1 '(1 4)))
+(set! *board* (stone-put 1 '(1 6)))
+(set! *board* (stone-put 0 '(0 6)))
+(set! *board* (stone-put 1 '(0 7)))
 
-
+;; 現在の盤面を出力する
 (print-board *board*)
+
+;; ボードの任意の位置にある石情報を取得するテスト
 ;;#?=(pick-board '(0 0) *board*)
 ;;#?=(pick-board '(0 1) *board*)
 ;;#?=(pick-board '(0 2) *board*)
@@ -204,8 +241,14 @@
 ;;#?=(pick-board '(0 6) *board*)
 ;;#?=(pick-board '(0 7) *board*)
 ;;#?=(pick-board '(0 8) *board*)
-#?=(aaaa? '(1 1) *player*)
-#?=(aaaa? '(0 5) *player*)
+
+;;; 呼吸点が存在するかチェックするユーティリティのテスト
+#?=(kokyuu? '(1 1) *player*)
+#?=(kokyuu? '(0 5) *player*)
+#?=(kokyuu? '(3 3) *player*)
+
+
+
 
 
 ;;    (print-board *board*)
